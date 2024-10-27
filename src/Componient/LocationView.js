@@ -2,17 +2,19 @@ import React from 'react';
 import { Menu } from 'lucide-react';
 import MenuUI from './MenuUI'; // Đảm bảo bạn có component MenuUI
 
-const LocationView = ({ handleMenuClick, isMenuOpen, handleMenuItemClick }) => (
-  <>
-    <header className="bg-[#4CAF50] p-4 flex items-center justify-between">
+const LocationView = ({ handleMenuClick, isMenuOpen, handleMenuItemClick, userEmail}) => (
+  <div className="fixed top-0 left-0 w-screen bg-white shadow-lg rounded-r-lg z-25">
+    <header className="bg-[#4CAF50] p-4 flex justify-between items-center">
       <button className="text-white flex items-center" onClick={handleMenuClick}>
         <Menu size={24} />
       </button>
-      <h1 className="text-white flex-1 text-center text-3xl font-bold">
-        Tìm kiếm
-      </h1>
     </header>
-    {isMenuOpen && <MenuUI handleMenuItemClick={handleMenuItemClick} />}
+    {isMenuOpen && (
+      <MenuUI 
+        handleMenuItemClick={handleMenuItemClick} 
+        userEmail={userEmail} // Truyền email vào MenuUI
+      />
+    )}
 
     {/* Main Content */}
     <div className="flex-1 p-4">
@@ -26,7 +28,7 @@ const LocationView = ({ handleMenuClick, isMenuOpen, handleMenuItemClick }) => (
         </button>
       </div>
     </div>
-  </>
+  </div>
 );
 
 export default LocationView;
