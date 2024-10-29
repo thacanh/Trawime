@@ -1,14 +1,17 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta
 import jwt
+from jwt import PyJWTError as JWTError
 from passlib.context import CryptContext
 import models
 import schemas
 import auth
 from database import engine, get_db
+import os
 
+# Tạo các bảng trong cơ sở dữ liệu
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -16,7 +19,7 @@ app = FastAPI()
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Trong production nên giới hạn origins
+    allow_origins=["http://localhost:3000"],  # Trong production nên giới hạn origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -101,5 +104,42 @@ async def read_users_me(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    return user 
+    return user
 
+@app.post("/change-password")
+async def change_password(
+    request: schemas.ChangePasswordRequest,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Kiểm tra mật khẩu cũ
+    if not auth.verify_password(request.old_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Mật khẩu hiện tại không chính xác"
+        )
+    
+    try:
+        current_user.hashed_password = auth.get_password_hash(request.new_password)
+        db.commit()
+        return {"message": "Mật khẩu đã được cập nhật thành công"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Lỗi khi cập nhật mật khẩu"
+        )
+
+@app.post("/upload/")
+async def upload_file(file: UploadFile = File(...)):
+    # Đường dẫn để lưu file
+    file_location = f"./uploads/{file.filename}"
+    
+    # Tạo thư mục nếu chưa tồn tại
+    os.makedirs(os.path.dirname(file_location), exist_ok=True)
+
+    with open(file_location, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    return {"filename": file.filename}
