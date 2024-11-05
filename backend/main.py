@@ -25,7 +25,7 @@ from fake_useragent import UserAgent
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Cấu hình Gemini API key
-GOOGLE_API_KEY = 'AIzaSyCyAEADKuRmUQRPpkxxYFwUTy-O5BbRoT4'
+GOOGLE_API_KEY = 'ur_api_key'
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Tạo các bảng trong cơ sở dữ liệu
